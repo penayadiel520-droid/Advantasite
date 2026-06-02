@@ -6,6 +6,8 @@
   <title>AdVanta Marketing — Facebook & Instagram Ads for Landscapers</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+  <!-- Google Places: replace YOUR_API_KEY to activate autocomplete -->
+  <script id="gplaces-script" data-key="YOUR_API_KEY"></script>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
@@ -287,6 +289,38 @@
     .form-submit { width: 100%; padding: 16px; background: var(--white); color: var(--black); font-family: 'Space Grotesk', sans-serif; font-size: 15px; font-weight: 700; border: none; border-radius: 8px; cursor: pointer; letter-spacing: 0.04em; margin-top: 8px; transition: opacity .2s, transform .2s; min-height: 56px; }
     .form-submit:hover { opacity: 0.88; transform: translateY(-1px); }
     .form-note { font-size: 12px; color: var(--dimmer); text-align: center; margin-top: 14px; }
+
+    /* ── City field wrapper ── */
+    .city-wrap { position: relative; }
+    .city-spinner {
+      position: absolute; right: 14px; top: 50%; transform: translateY(-50%);
+      width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.15);
+      border-top-color: var(--silver); border-radius: 50%;
+      animation: spin .7s linear infinite; display: none;
+    }
+    .city-wrap.checking .city-spinner { display: block; }
+    @keyframes spin { to { transform: translateY(-50%) rotate(360deg); } }
+    .city-valid-icon {
+      position: absolute; right: 14px; top: 50%; transform: translateY(-50%);
+      font-size: 15px; display: none; pointer-events: none;
+    }
+    .city-wrap.valid .city-valid-icon { display: block; }
+
+    /* Google Places autocomplete dropdown override */
+    .pac-container {
+      background: #1e1e1e; border: 1px solid rgba(255,255,255,0.18);
+      border-radius: 10px; margin-top: 4px; font-family: 'DM Sans', sans-serif;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.6); overflow: hidden;
+    }
+    .pac-item {
+      padding: 10px 16px; color: rgba(255,255,255,0.7); font-size: 13px;
+      border-top: 1px solid rgba(255,255,255,0.07); cursor: pointer;
+    }
+    .pac-item:first-child { border-top: none; }
+    .pac-item:hover, .pac-item-selected { background: rgba(255,255,255,0.06); color: #fff; }
+    .pac-item-query { color: #fff; font-weight: 600; }
+    .pac-icon { display: none; }
+    .pac-logo::after { display: none; }
 
     /* ── Form validation ── */
     .form-row input.field-error,
@@ -793,7 +827,11 @@
             </div>
             <div class="form-row">
               <label for="fcity">What city do you serve?</label>
-              <input type="text" id="fcity" name="city" placeholder="e.g. Austin, TX" autocomplete="address-level2">
+              <div class="city-wrap" id="city-wrap">
+                <input type="text" id="fcity" name="city" placeholder="e.g. Austin, TX" autocomplete="off">
+                <div class="city-spinner"></div>
+                <span class="city-valid-icon">✅</span>
+              </div>
             </div>
             <div class="form-row">
               <label for="fbudget">Monthly ad budget you're open to</label>
@@ -914,10 +952,107 @@ document.querySelectorAll('.faq-q').forEach(btn => {
   });
 });
 
+// ── City validation — 3-layer ──
+const cityWrap = document.getElementById('city-wrap');
+const cityInput = document.getElementById('fcity');
+let cityVerified = false;
+let cityNominatimTimer = null;
+let placesAutocomplete = null;
+
+// Layer 1 — regex: letters, spaces, commas, dashes, periods
+function cityPassesRegex(v) {
+  return /^[a-zA-ZÀ-ɏ\s\-\.,]{2,}$/.test(v.trim());
+}
+
+// Layer 2 — Nominatim geocoding (fires 600ms after user stops typing)
+async function verifyCityNominatim(value) {
+  try {
+    const res = await fetch(
+      `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(value)}&featuretype=city&format=json&limit=1`,
+      { headers: { 'Accept-Language': 'en' } }
+    );
+    const data = await res.json();
+    return data.length > 0;
+  } catch {
+    return true; // network error — don't block submission
+  }
+}
+
+function setCityState(state, message) {
+  cityWrap.classList.remove('checking', 'valid');
+  const cityRow = cityWrap.closest('.form-row');
+  clearError(cityInput);
+
+  if (state === 'checking') {
+    cityWrap.classList.add('checking');
+  } else if (state === 'valid') {
+    cityWrap.classList.add('valid');
+    cityVerified = true;
+  } else if (state === 'error') {
+    cityVerified = false;
+    showError(cityInput, message || 'Please enter a valid city');
+  }
+}
+
+cityInput.addEventListener('input', () => {
+  cityVerified = false;
+  cityWrap.classList.remove('valid');
+  clearError(cityInput);
+  clearTimeout(cityNominatimTimer);
+
+  const val = cityInput.value.trim();
+  if (!val) return;
+
+  // Layer 1 — instant regex
+  if (!cityPassesRegex(val)) {
+    setCityState('error', 'Please enter a valid city name');
+    return;
+  }
+
+  // Skip Nominatim if Google Places already confirmed it
+  if (placesAutocomplete) return;
+
+  // Layer 2 — Nominatim after 600ms pause
+  setCityState('checking');
+  cityNominatimTimer = setTimeout(async () => {
+    const valid = await verifyCityNominatim(val);
+    if (cityInput.value.trim() !== val) return; // user kept typing
+    setCityState(valid ? 'valid' : 'error', "We couldn't find that location — please check the spelling");
+  }, 600);
+});
+
+// Layer 3 — Google Places autocomplete (activates when API key is set)
+(function initGooglePlaces() {
+  const tag = document.getElementById('gplaces-script');
+  const key = tag && tag.dataset.key;
+  if (!key || key === 'YOUR_API_KEY') return;
+
+  const s = document.createElement('script');
+  s.src = `https://maps.googleapis.com/maps/api/js?key=${key}&libraries=places&callback=onGooglePlacesReady`;
+  s.async = true;
+  document.head.appendChild(s);
+})();
+
+window.onGooglePlacesReady = function() {
+  placesAutocomplete = new google.maps.places.Autocomplete(cityInput, {
+    types: ['(cities)'],
+    fields: ['name', 'geometry']
+  });
+  placesAutocomplete.addListener('place_changed', () => {
+    const place = placesAutocomplete.getPlace();
+    clearTimeout(cityNominatimTimer);
+    if (place && place.geometry) {
+      setCityState('valid');
+    } else {
+      setCityState('error', 'Please select a city from the suggestions');
+    }
+  });
+};
+
 // ── Form validation & submit ──
 const bookForm = document.getElementById('bookForm');
 
-// Fields that are required (fmsg is optional)
+// Required fields (fmsg is optional)
 const requiredFields = ['fname', 'fbiz', 'femail', 'fphone', 'fcity', 'fbudget'];
 
 const validators = {
@@ -928,60 +1063,74 @@ const validators = {
   fphone: {
     test: v => /^[\+]?[\d\s\-\(\)]{7,15}$/.test(v.replace(/\s/g, '')),
     msg: 'Please enter a valid phone number'
-  },
-  fcity: {
-    test: v => /^[a-zA-ZÀ-ɏ\s\-\.,]{2,}$/.test(v.trim()),
-    msg: 'Please enter a valid city'
   }
 };
 
 function clearError(el) {
   el.classList.remove('field-error');
-  const msg = el.parentElement.querySelector('.field-error-msg');
+  const parent = el.closest('.form-row') || el.parentElement;
+  const msg = parent.querySelector('.field-error-msg');
   if (msg) msg.remove();
 }
 
 function showError(el, message) {
   el.classList.add('field-error');
-  const existing = el.parentElement.querySelector('.field-error-msg');
+  const parent = el.closest('.form-row') || el.parentElement;
+  const existing = parent.querySelector('.field-error-msg');
   if (existing) {
     existing.textContent = message;
   } else {
     const msg = document.createElement('span');
     msg.className = 'field-error-msg';
     msg.textContent = message;
-    el.parentElement.appendChild(msg);
+    parent.appendChild(msg);
   }
 }
 
-// Clear error live as user types/selects
-requiredFields.forEach(id => {
+// Clear errors live as user types/selects
+['fname','fbiz','femail','fphone','fbudget'].forEach(id => {
   const el = document.getElementById(id);
   if (!el) return;
   el.addEventListener('input', () => clearError(el));
   el.addEventListener('change', () => clearError(el));
 });
 
-bookForm.addEventListener('submit', function(e) {
+bookForm.addEventListener('submit', async function(e) {
   e.preventDefault();
   let hasError = false;
 
-  requiredFields.forEach(id => {
+  for (const id of requiredFields) {
     const el = document.getElementById(id);
-    if (!el) return;
+    if (!el) continue;
     const val = el.tagName === 'SELECT' ? el.value : el.value.trim();
-    const empty = !val;
 
-    if (empty) {
+    if (!val) {
       showError(el, 'This is a required question');
       hasError = true;
     } else if (validators[id] && !validators[id].test(val)) {
       showError(el, validators[id].msg);
       hasError = true;
+    } else if (id === 'fcity') {
+      // If still checking or unverified, run Nominatim now
+      if (!cityVerified) {
+        if (!cityPassesRegex(val)) {
+          setCityState('error', 'Please enter a valid city name');
+          hasError = true;
+        } else {
+          setCityState('checking');
+          const ok = await verifyCityNominatim(val);
+          if (ok) {
+            setCityState('valid');
+          } else {
+            setCityState('error', "We couldn't find that location — please check the spelling");
+            hasError = true;
+          }
+        }
+      }
     } else {
       clearError(el);
     }
-  });
+  }
 
   if (hasError) {
     const first = bookForm.querySelector('.field-error');
