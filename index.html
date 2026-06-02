@@ -815,7 +815,9 @@
         <div class="book-form reveal">
           <div class="form-title">Book Your Free Strategy Call</div>
           <div class="form-sub">We'll respond within 24 hours to confirm your spot.</div>
-          <form id="bookForm" novalidate>
+          <form id="bookForm" name="strategy-call" method="POST" data-netlify="true" data-netlify-honeypot="bot-field" novalidate>
+            <input type="hidden" name="form-name" value="strategy-call">
+            <p hidden><label>Leave this empty: <input name="bot-field"></label></p>
             <div class="form-row">
               <label for="fname">Full Name</label>
               <input type="text" id="fname" name="name" placeholder="John Smith" autocomplete="name" required>
@@ -1146,11 +1148,27 @@ bookForm.addEventListener('submit', async function(e) {
   }
 
   const btn = document.getElementById('submit-btn');
-  btn.textContent = '✅ Request Sent! We\'ll be in touch within 24 hours.';
-  btn.style.background = '#1a1a1a';
-  btn.style.color = '#fff';
-  btn.style.border = '1px solid rgba(255,255,255,0.2)';
+  btn.textContent = 'Sending…';
   btn.disabled = true;
+
+  fetch('/', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams(new FormData(bookForm)).toString()
+  })
+    .then(() => {
+      btn.textContent = '✅ Request Sent! We\'ll be in touch within 24 hours.';
+      btn.style.background = '#1a1a1a';
+      btn.style.color = '#fff';
+      btn.style.border = '1px solid rgba(255,255,255,0.2)';
+    })
+    .catch(() => {
+      btn.textContent = 'Something went wrong — please try again.';
+      btn.style.background = '#3a1a1a';
+      btn.style.color = '#fff';
+      btn.style.border = '1px solid rgba(224,60,60,0.4)';
+      btn.disabled = false;
+    });
 });
 </script>
 </body>
