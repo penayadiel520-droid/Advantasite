@@ -84,13 +84,14 @@
 
     /* ── HUD dots ── */
     #hud {
-      position: fixed; right: 28px; top: 50%; transform: translateY(-50%);
+      position: fixed; right: 28px; left: auto; width: max-content; top: 50%; transform: translateY(-50%);
       z-index: 100; display: flex; flex-direction: column; gap: 10px;
+      pointer-events: none;
     }
     .hdot {
       width: 7px; height: 7px; border-radius: 50%;
       background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3);
-      cursor: pointer; transition: all .3s;
+      cursor: pointer; transition: all .3s; pointer-events: auto;
     }
     .hdot.on {
       background: var(--white); box-shadow: 0 0 10px rgba(255,255,255,0.5);
@@ -98,12 +99,13 @@
     }
 
     /* ── Nav ── */
-    nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; padding: 18px 0; }
+    nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; padding: 18px 0; pointer-events: none; }
     .nav-inner {
       max-width: 1200px; margin: 0 auto; padding: 14px 28px;
       display: flex; align-items: center; justify-content: space-between;
       background: rgba(0,0,0,0.75); backdrop-filter: blur(20px);
       border: 1px solid var(--border); border-radius: 14px;
+      pointer-events: auto;
     }
     .nav-logo { display: flex; align-items: center; gap: 12px; text-decoration: none; }
     .nav-brand { font-family: 'Space Grotesk', sans-serif; font-size: 18px; font-weight: 700; letter-spacing: 0.06em; color: var(--white); }
