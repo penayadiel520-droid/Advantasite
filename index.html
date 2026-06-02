@@ -288,6 +288,22 @@
     .form-submit:hover { opacity: 0.88; transform: translateY(-1px); }
     .form-note { font-size: 12px; color: var(--dimmer); text-align: center; margin-top: 14px; }
 
+    /* ── Form validation ── */
+    .form-row input.field-error,
+    .form-row select.field-error,
+    .form-row textarea.field-error {
+      border-color: #e03c3c !important;
+      background: rgba(224,60,60,0.07) !important;
+      box-shadow: 0 0 0 3px rgba(224,60,60,0.15) !important;
+    }
+    .field-error-msg {
+      display: block; margin-top: 6px;
+      font-size: 12px; color: #e03c3c;
+      font-family: 'DM Sans', sans-serif;
+      animation: errFade .2s ease;
+    }
+    @keyframes errFade { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+
     .book-promise { display: flex; flex-direction: column; gap: 28px; padding-top: 8px; }
     .bp-item { display: flex; gap: 18px; align-items: flex-start; }
     .bp-icon { width: 44px; height: 44px; border-radius: 10px; flex-shrink: 0; background: rgba(255,255,255,0.06); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 20px; }
@@ -898,9 +914,57 @@ document.querySelectorAll('.faq-q').forEach(btn => {
   });
 });
 
-// ── Form submit ──
-document.getElementById('bookForm').addEventListener('submit', function(e) {
+// ── Form validation & submit ──
+const bookForm = document.getElementById('bookForm');
+const requiredFields = ['fname', 'fbiz', 'femail', 'fphone', 'fcity', 'fbudget', 'fmsg'];
+
+function clearError(el) {
+  el.classList.remove('field-error');
+  const msg = el.parentElement.querySelector('.field-error-msg');
+  if (msg) msg.remove();
+}
+
+function showError(el) {
+  el.classList.add('field-error');
+  if (!el.parentElement.querySelector('.field-error-msg')) {
+    const msg = document.createElement('span');
+    msg.className = 'field-error-msg';
+    msg.textContent = 'This is a required question';
+    el.parentElement.appendChild(msg);
+  }
+}
+
+// Clear error on input/change
+requiredFields.forEach(id => {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.addEventListener('input', () => clearError(el));
+  el.addEventListener('change', () => clearError(el));
+});
+
+bookForm.addEventListener('submit', function(e) {
   e.preventDefault();
+  let hasError = false;
+
+  requiredFields.forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const empty = el.tagName === 'SELECT' ? !el.value : !el.value.trim();
+    if (empty) {
+      showError(el);
+      hasError = true;
+    } else {
+      clearError(el);
+    }
+  });
+
+  if (hasError) {
+    // Scroll to first error
+    const first = bookForm.querySelector('.field-error');
+    if (first) first.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    return;
+  }
+
   const btn = document.getElementById('submit-btn');
   btn.textContent = '✅ Request Sent! We\'ll be in touch within 24 hours.';
   btn.style.background = '#1a1a1a';
