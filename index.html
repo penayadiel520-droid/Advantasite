@@ -312,9 +312,42 @@
       .hero-wrap, .how-grid, .ad-example-layout, .promise-cols, .book-wrap { grid-template-columns: 1fr; }
       .stats-strip { grid-template-columns: repeat(2, 1fr); }
       .stat-item:nth-child(2) { border-right: none; }
+      .stat-item:nth-child(3) { border-top: 1px solid var(--border); }
+      .stat-item:nth-child(4) { border-top: 1px solid var(--border); }
       .nav-links, #hud { display: none; }
       .container { padding: 0 24px; }
       .hero-phone-wrap { justify-content: center; }
+      section { padding: 72px 0; }
+      h1 { font-size: clamp(2.6rem, 10vw, 4rem); }
+      h2 { font-size: clamp(1.9rem, 7vw, 3rem); }
+      .stat-item { padding: 28px 16px; }
+      .stat-num { font-size: 2.2rem; }
+      .promise-box { padding: 40px 24px; }
+      .book-form { padding: 36px 24px; }
+    }
+
+    @media (max-width: 900px) {
+      /* The Math section — stack $800 → $15k vertically */
+      #worth-it [style*="grid-template-columns:1fr auto 1fr"] {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 16px !important;
+      }
+      #worth-it [style*="grid-template-columns:1fr auto 1fr"] > [style*="font-size:2rem"] {
+        text-align: center !important;
+        transform: rotate(90deg);
+        font-size: 1.5rem !important;
+        color: var(--silver);
+      }
+      /* The Math bottom 3-col grid — stack */
+      #worth-it [style*="grid-template-columns:repeat(3,1fr)"] {
+        display: flex !important;
+        flex-direction: column !important;
+      }
+      /* How It Works gap */
+      .how-grid { gap: 2px; }
+      .how-card { padding: 36px 24px; }
     }
     :focus-visible { outline: 2px solid var(--silver); outline-offset: 3px; border-radius: 4px; }
 
