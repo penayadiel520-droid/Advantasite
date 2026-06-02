@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AdVanta Marketing — Facebook & Instagram Ads for Landscapers</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --black: #000000;
+      --dark: #080808;
+      --dark2: #0f0f0f;
+      --silver: #C8C8C8;
+      --silver-light: #E8E8E8;
+      --white: #ffffff;
+      --dim: rgba(255,255,255,0.5);
+      --dimmer: rgba(255,255,255,0.28);
+      --border: rgba(255,255,255,0.10);
+      --border-bright: rgba(255,255,255,0.18);
+      --fb-blue: #1877F2;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--dark);
+      color: var(--white);
+      font-family: 'DM Sans', sans-serif;
+      overflow-x: hidden;
+      line-height: 1.6;
+    }
+
+    /* ── Animated CSS background ── */
+    .bg-wrap {
+      position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden;
+    }
+    .bg-wrap::before {
+      content: '';
+      position: absolute; inset: 0;
+      background:
+        radial-gradient(ellipse 70% 50% at 15% 20%, rgba(255,255,255,0.04) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 40% at 85% 75%, rgba(255,255,255,0.03) 0%, transparent 55%),
+        linear-gradient(160deg, #0a0a0a 0%, #080808 50%, #0d0d0d 100%);
+    }
+    .orb {
+      position: absolute; border-radius: 50%; filter: blur(90px); pointer-events: none;
+    }
+    .orb-1 {
+      width: 600px; height: 600px; top: -150px; left: -150px;
+      background: radial-gradient(circle, rgba(200,200,200,0.055) 0%, transparent 70%);
+      animation: driftA 18s ease-in-out infinite alternate;
+    }
+    .orb-2 {
+      width: 500px; height: 500px; bottom: 10%; right: -100px;
+      background: radial-gradient(circle, rgba(180,180,180,0.04) 0%, transparent 70%);
+      animation: driftB 22s ease-in-out infinite alternate;
+    }
+    .orb-3 {
+      width: 400px; height: 400px; top: 40%; left: 40%;
+      background: radial-gradient(circle, rgba(150,150,150,0.03) 0%, transparent 70%);
+      animation: driftC 26s ease-in-out infinite alternate;
+    }
+    /* Subtle dot-grid texture */
+    .bg-grid {
+      position: absolute; inset: 0;
+      background-image: radial-gradient(circle, rgba(255,255,255,0.07) 1px, transparent 1px);
+      background-size: 48px 48px;
+      opacity: 0.35;
+    }
+    @keyframes driftA { from{transform:translate(0,0) scale(1)} to{transform:translate(60px,40px) scale(1.12)} }
+    @keyframes driftB { from{transform:translate(0,0) scale(1)} to{transform:translate(-50px,-60px) scale(1.08)} }
+    @keyframes driftC { from{transform:translate(0,0) scale(1)} to{transform:translate(30px,-40px) scale(1.15)} }
+
+    /* ── Progress bar ── */
+    #pbar {
+      position: fixed; top: 0; left: 0; height: 2px; z-index: 200;
+      background: linear-gradient(90deg, #fff, #888, #fff);
+      width: 0; transition: width 0.1s linear;
+    }
+
+    /* ── HUD dots ── */
+    #hud {
+      position: fixed; right: 28px; top: 50%; transform: translateY(-50%);
+      z-index: 100; display: flex; flex-direction: column; gap: 10px;
+    }
+    .hdot {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3);
+      cursor: pointer; transition: all .3s;
+    }
+    .hdot.on {
+      background: var(--white); box-shadow: 0 0 10px rgba(255,255,255,0.5);
+      transform: scale(1.6);
+    }
+
+    /* ── Nav ── */
+    nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; padding: 18px 0; }
+    .nav-inner {
+      max-width: 1200px; margin: 0 auto; padding: 14px 28px;
+      display: flex; align-items: center; justify-content: space-between;
+      background: rgba(0,0,0,0.75); backdrop-filter: blur(20px);
+      border: 1px solid var(--border); border-radius: 14px;
+    }
+    .nav-logo { display: flex; align-items: center; gap: 12px; text-decoration: none; }
+    .nav-brand { font-family: 'Space Grotesk', sans-serif; font-size: 18px; font-weight: 700; letter-spacing: 0.06em; color: var(--white); }
+    .nav-brand span { color: var(--silver); }
+    .nav-links { display: flex; gap: 32px; list-style: none; }
+    .nav-links a { color: var(--dim); font-size: 14px; font-weight: 500; text-decoration: none; transition: color .2s; }
+    .nav-links a:hover { color: var(--white); }
+    .nav-cta {
+      padding: 10px 26px; border-radius: 8px; border: 1px solid var(--white);
+      background: transparent; color: var(--white);
+      font-family: 'Space Grotesk', sans-serif; font-size: 14px; font-weight: 600;
+      cursor: pointer; letter-spacing: 0.04em; transition: background .2s, color .2s;
+    }
+    .nav-cta:hover { background: var(--white); color: var(--black); }
+
+    /* ── Layout ── */
+    .content { position: relative; z-index: 10; }
+    .container { max-width: 1160px; margin: 0 auto; padding: 0 48px; }
+    section { padding: 110px 0; position: relative; z-index: 10; }
+
+    /* ── Typography ── */
+    .eyebrow {
+      font-family: 'Space Grotesk', sans-serif; font-size: 11px; font-weight: 700;
+      letter-spacing: 0.2em; text-transform: uppercase; color: var(--silver);
+      display: block; margin-bottom: 18px;
+    }
+    h1 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: clamp(3.2rem, 7vw, 6.4rem); font-weight: 700;
+      line-height: 1.03; letter-spacing: -0.03em; margin-bottom: 28px;
+    }
+    h2 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: clamp(2.2rem, 4.5vw, 3.8rem); font-weight: 700;
+      line-height: 1.08; letter-spacing: -0.025em; margin-bottom: 18px;
+    }
+    h3 { font-family: 'Space Grotesk', sans-serif; font-size: 1.15rem; font-weight: 600; margin-bottom: 10px; }
+    .lead { font-size: 1.1rem; color: var(--dim); line-height: 1.8; max-width: 540px; }
+    .silver { color: var(--silver-light); }
+
+    /* ── Buttons ── */
+    .btn-white {
+      display: inline-flex; align-items: center; gap: 10px; padding: 16px 36px;
+      border-radius: 8px; background: var(--white); color: var(--black);
+      font-family: 'Space Grotesk', sans-serif; font-size: 15px; font-weight: 700;
+      border: none; cursor: pointer; text-decoration: none; letter-spacing: 0.03em;
+      transition: opacity .2s, transform .2s;
+      box-shadow: 0 6px 32px rgba(255,255,255,0.12);
+    }
+    .btn-white:hover { opacity: 0.88; transform: translateY(-2px); }
+    .btn-ghost {
+      display: inline-flex; align-items: center; gap: 10px; padding: 16px 36px;
+      border-radius: 8px; background: transparent; border: 1px solid var(--border-bright);
+      color: var(--white); font-family: 'Space Grotesk', sans-serif;
+      font-size: 15px; font-weight: 600; cursor: pointer; text-decoration: none;
+      letter-spacing: 0.03em; transition: border-color .2s, background .2s, transform .2s;
+    }
+    .btn-ghost:hover { border-color: var(--white); background: rgba(255,255,255,0.05); transform: translateY(-2px); }
+
+    /* ── Hero ── */
+    #hero { min-height: 100vh; display: flex; align-items: center; padding-top: 100px; }
+    .hero-wrap { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: center; }
+    .hero-actions { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 44px; }
+    .scroll-hint {
+      position: absolute; bottom: 36px; left: 50%; transform: translateX(-50%);
+      display: flex; flex-direction: column; align-items: center; gap: 6px;
+      font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--dimmer);
+    }
+    .scroll-line { width: 1px; height: 44px; background: linear-gradient(180deg, rgba(255,255,255,0.5), transparent); animation: sp 2.4s infinite; }
+    @keyframes sp { 0%,100%{opacity:1}50%{opacity:0.3} }
+
+    /* ── Stats strip ── */
+    .stats-strip {
+      display: grid; grid-template-columns: repeat(4, 1fr); margin-top: 80px;
+      border: 1px solid var(--border); border-radius: 16px; overflow: hidden;
+      background: rgba(255,255,255,0.02);
+    }
+    .stat-item { padding: 36px 28px; text-align: center; border-right: 1px solid var(--border); }
+    .stat-item:last-child { border-right: none; }
+    .stat-num { font-family: 'Space Grotesk', sans-serif; font-size: 2.8rem; font-weight: 700; line-height: 1; display: block; }
+    .stat-label { font-size: 13px; color: var(--dim); margin-top: 6px; line-height: 1.4; }
+
+    /* ── Mock Facebook Ad ── */
+    .mock-ad { border-radius: 16px; overflow: hidden; background: #1a1a1a; border: 1px solid rgba(255,255,255,0.14); max-width: 360px; }
+    .mock-ad-header { padding: 14px 16px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid rgba(255,255,255,0.07); }
+    .ad-avatar { width: 38px; height: 38px; border-radius: 50%; background: #222; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; border: 1px solid rgba(255,255,255,0.12); }
+    .ad-page-name { font-family: 'Space Grotesk', sans-serif; font-size: 13px; font-weight: 700; }
+    .ad-tag { font-size: 11px; color: var(--dimmer); }
+    .ad-img { width: 100%; height: 200px; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 12px; position: relative; overflow: hidden; }
+    .ad-img-bg { position: absolute; inset: 0; background: radial-gradient(ellipse at 30% 50%, rgba(0,100,0,0.4), transparent 60%), linear-gradient(160deg, #0a1f0a, #1a3a1a); }
+    .ad-img-text { font-family: 'Space Grotesk', sans-serif; font-size: 22px; font-weight: 800; color: #fff; text-align: center; line-height: 1.2; z-index: 1; text-shadow: 0 2px 12px rgba(0,0,0,0.8); }
+    .ad-img-sub { font-size: 13px; color: rgba(255,255,255,0.7); z-index: 1; text-align: center; }
+    .ad-body { padding: 14px 16px; }
+    .ad-headline { font-family: 'Space Grotesk', sans-serif; font-size: 14px; font-weight: 700; margin-bottom: 4px; }
+    .ad-copy { font-size: 12.5px; color: var(--dim); line-height: 1.5; margin-bottom: 12px; }
+    .ad-cta-btn { display: block; width: 100%; padding: 10px; background: var(--fb-blue); border: none; border-radius: 6px; color: #fff; font-family: 'Space Grotesk', sans-serif; font-size: 13px; font-weight: 700; cursor: pointer; text-align: center; }
+    .ad-reactions { padding: 10px 16px; border-top: 1px solid rgba(255,255,255,0.07); display: flex; justify-content: space-between; font-size: 12px; color: var(--dimmer); }
+
+    /* ── How it works ── */
+    #how { background: #0a0a0a; }
+    .how-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; margin-top: 60px; }
+    .how-card { padding: 48px 36px; background: #0d0d0d; position: relative; overflow: hidden; transition: background .3s; }
+    .how-card:hover { background: #111; }
+    .how-num { font-family: 'Space Grotesk', sans-serif; font-size: 5rem; font-weight: 800; color: rgba(255,255,255,0.05); line-height: 1; margin-bottom: 24px; display: block; }
+    .how-icon { width: 52px; height: 52px; border-radius: 12px; background: rgba(255,255,255,0.06); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 22px; margin-bottom: 20px; }
+    .how-card h3 { font-size: 1.2rem; margin-bottom: 12px; }
+    .how-card p { font-size: 14px; color: var(--dim); line-height: 1.75; }
+    .how-card-line { position: absolute; bottom: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, var(--white), transparent); opacity: 0; transition: opacity .3s; }
+    .how-card:hover .how-card-line { opacity: 1; }
+
+    /* ── Ad example ── */
+    .ad-example-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center; }
+    .result-pills { display: flex; flex-direction: column; gap: 12px; margin-top: 32px; }
+    .result-pill { display: flex; align-items: center; gap: 14px; padding: 16px 20px; border-radius: 10px; background: rgba(255,255,255,0.04); border: 1px solid var(--border); }
+    .pill-icon { font-size: 20px; flex-shrink: 0; }
+    .pill-label { font-size: 13px; color: var(--dim); }
+    .pill-val { font-family: 'Space Grotesk', sans-serif; font-size: 15px; font-weight: 700; margin-left: auto; }
+
+    /* ── Worth it ── */
+    #worth-it { background: #0a0a0a; }
+
+    /* ── Promise ── */
+    .promise-box { border: 1px solid var(--border-bright); border-radius: 20px; padding: 64px 56px; text-align: center; background: rgba(255,255,255,0.02); position: relative; overflow: hidden; }
+    .promise-box::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse 60% 40% at 50% 0%, rgba(255,255,255,0.03), transparent); pointer-events: none; }
+    .promise-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; text-align: left; margin-bottom: 48px; }
+    .promise-col { padding: 32px; border-radius: 14px; background: rgba(255,255,255,0.03); border: 1px solid var(--border); }
+    .promise-col h4 { font-family: 'Space Grotesk', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--silver); margin-bottom: 10px; }
+    .promise-col .amount { font-family: 'Space Grotesk', sans-serif; font-size: 1.8rem; font-weight: 700; margin-bottom: 8px; }
+    .promise-col p { font-size: 13.5px; color: var(--dim); line-height: 1.7; }
+
+    /* ── FAQ ── */
+    .faq-list { display: flex; flex-direction: column; margin-top: 56px; border-top: 1px solid var(--border); }
+    .faq-item { border-bottom: 1px solid var(--border); }
+    .faq-q { width: 100%; background: none; border: none; color: var(--white); font-family: 'Space Grotesk', sans-serif; font-size: 16px; font-weight: 600; padding: 24px 0; text-align: left; cursor: pointer; display: flex; align-items: center; justify-content: space-between; gap: 16px; transition: color .2s; }
+    .faq-q:hover { color: var(--silver-light); }
+    .faq-icon { font-size: 20px; flex-shrink: 0; transition: transform .3s; color: var(--dim); }
+    .faq-a { font-size: 14.5px; color: var(--dim); line-height: 1.8; max-height: 0; overflow: hidden; transition: max-height .4s ease, padding .3s ease; }
+    .faq-item.open .faq-a { max-height: 200px; padding-bottom: 24px; }
+    .faq-item.open .faq-icon { transform: rotate(45deg); color: var(--white); }
+
+    /* ── Book / Form ── */
+    #book { background: #0a0a0a; }
+    .book-wrap { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: start; }
+    .book-form { background: #141414; border: 1px solid rgba(255,255,255,0.16); border-radius: 20px; padding: 48px 40px; }
+    .form-title { font-family: 'Space Grotesk', sans-serif; font-size: 1.4rem; font-weight: 700; margin-bottom: 6px; }
+    .form-sub { font-size: 13.5px; color: var(--dim); margin-bottom: 32px; }
+    .form-row { margin-bottom: 18px; }
+    .form-row label { display: block; font-family: 'Space Grotesk', sans-serif; font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--silver); margin-bottom: 8px; }
+    .form-row input,
+    .form-row select,
+    .form-row textarea {
+      display: block; width: 100%;
+      padding: 15px 18px;
+      background: #1e1e1e;
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 10px;
+      color: #fff;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 16px;
+      line-height: 1.5;
+      min-height: 54px;
+      outline: none;
+      -webkit-appearance: none;
+      appearance: none;
+      transition: border-color .2s, background .2s;
+      cursor: text;
+    }
+    .form-row select { cursor: pointer; }
+    .form-row input:hover,
+    .form-row select:hover,
+    .form-row textarea:hover { border-color: rgba(255,255,255,0.35); }
+    .form-row input:focus,
+    .form-row select:focus,
+    .form-row textarea:focus { border-color: rgba(255,255,255,0.6); background: #252525; box-shadow: 0 0 0 3px rgba(255,255,255,0.06); }
+    .form-row select option { background: #1e1e1e; color: #fff; }
+    .form-row textarea { resize: vertical; min-height: 90px; cursor: auto; }
+    .form-row input::placeholder,
+    .form-row textarea::placeholder { color: rgba(255,255,255,0.22); }
+    .form-submit { width: 100%; padding: 16px; background: var(--white); color: var(--black); font-family: 'Space Grotesk', sans-serif; font-size: 15px; font-weight: 700; border: none; border-radius: 8px; cursor: pointer; letter-spacing: 0.04em; margin-top: 8px; transition: opacity .2s, transform .2s; min-height: 56px; }
+    .form-submit:hover { opacity: 0.88; transform: translateY(-1px); }
+    .form-note { font-size: 12px; color: var(--dimmer); text-align: center; margin-top: 14px; }
+
+    .book-promise { display: flex; flex-direction: column; gap: 28px; padding-top: 8px; }
+    .bp-item { display: flex; gap: 18px; align-items: flex-start; }
+    .bp-icon { width: 44px; height: 44px; border-radius: 10px; flex-shrink: 0; background: rgba(255,255,255,0.06); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 20px; }
+    .bp-title { font-family: 'Space Grotesk', sans-serif; font-size: 15px; font-weight: 600; margin-bottom: 4px; }
+    .bp-desc { font-size: 13.5px; color: var(--dim); line-height: 1.65; }
+
+    /* ── Notification badges (hero) ── */
+    .hero-phone-wrap { position: relative; display: flex; justify-content: flex-end; overflow: hidden; }
+    .notif-badge { position: absolute; display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; border-radius: 10px; background: rgba(12,12,12,0.92); border: 1px solid rgba(255,255,255,0.14); font-size: 12px; font-family: 'Space Grotesk', sans-serif; font-weight: 600; white-space: nowrap; pointer-events: none; animation: floatBadge 4s ease-in-out infinite; }
+    .notif-badge.b1 { top: 14%; right: 4%; animation-delay: 0s; }
+    .notif-badge.b2 { top: 50%; right: 3%; animation-delay: 1.5s; }
+    .notif-badge.b3 { bottom: 16%; right: 5%; animation-delay: 3s; }
+    @keyframes floatBadge { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
+
+    /* ── Footer ── */
+    footer { border-top: 1px solid var(--border); padding: 44px 0; position: relative; z-index: 10; }
+    .footer-inner { max-width: 1160px; margin: 0 auto; padding: 0 48px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; }
+    .footer-brand { display: flex; align-items: center; gap: 10px; }
+    .footer-copy { font-size: 13px; color: var(--dimmer); }
+    .footer-tagline { font-family: 'Space Grotesk', sans-serif; font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--silver); margin-top: 2px; }
+
+    /* ── Responsive ── */
+    @media (max-width: 900px) {
+      .hero-wrap, .how-grid, .ad-example-layout, .promise-cols, .book-wrap { grid-template-columns: 1fr; }
+      .stats-strip { grid-template-columns: repeat(2, 1fr); }
+      .stat-item:nth-child(2) { border-right: none; }
+      .nav-links, #hud { display: none; }
+      .container { padding: 0 24px; }
+      .hero-phone-wrap { justify-content: center; }
+    }
+    :focus-visible { outline: 2px solid var(--silver); outline-offset: 3px; border-radius: 4px; }
+
+    /* ── Reveal ── */
+    .reveal { opacity: 0; transform: translateY(28px); transition: opacity .7s ease, transform .7s ease; }
+    .reveal.in { opacity: 1; transform: none; }
+  </style>
+</head>
+<body>
+
+<!-- Animated background -->
+<div class="bg-wrap" aria-hidden="true">
+  <div class="bg-grid"></div>
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+</div>
+
+<!-- Progress bar -->
+<div id="pbar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+
+<!-- 6 HUD dots -->
+<nav id="hud" aria-label="Section navigation">
+  <div class="hdot on"  data-i="0" title="Home"></div>
+  <div class="hdot"     data-i="1" title="How It Works"></div>
+  <div class="hdot"     data-i="2" title="Our Ads"></div>
+  <div class="hdot"     data-i="3" title="The Math"></div>
+  <div class="hdot"     data-i="4" title="FAQ"></div>
+  <div class="hdot"     data-i="5" title="Book a Call"></div>
+</nav>
+
+<!-- Nav -->
+<nav aria-label="Main">
+  <div class="nav-inner">
+    <a href="#" class="nav-logo">
+      <svg width="32" height="32" viewBox="0 0 100 100" fill="none">
+        <defs>
+          <linearGradient id="lg1" x1="50" y1="10" x2="50" y2="90" gradientUnits="userSpaceOnUse">
+            <stop offset="0%" stop-color="#ffffff"/>
+            <stop offset="100%" stop-color="#888888"/>
+          </linearGradient>
+        </defs>
+        <polygon points="50,12 20,85 30,85 50,38 70,85 80,85" fill="url(#lg1)"/>
+        <path d="M28,62 Q50,52 80,56 L82,62 Q58,58 30,68 Z" fill="#999"/>
+      </svg>
+      <span class="nav-brand">Ad<span>Vanta</span></span>
+    </a>
+    <ul class="nav-links">
+      <li><a href="#how">How It Works</a></li>
+      <li><a href="#ad-example">Our Ads</a></li>
+      <li><a href="#worth-it">The Math</a></li>
+      <li><a href="#faq">FAQ</a></li>
+    </ul>
+    <button class="nav-cta" onclick="document.getElementById('book').scrollIntoView({behavior:'smooth'})">Book a Call</button>
+  </div>
+</nav>
+
+<main class="content">
+
+  <!-- ── HERO ── -->
+  <section id="hero" style="position:relative; min-height:100vh; display:flex; align-items:center; padding-top:100px;">
+    <div class="container" style="width:100%;">
+      <div class="hero-wrap">
+        <div id="hero-text">
+          <span class="eyebrow" id="h-ey">Facebook & Instagram Ads · Landscapers</span>
+          <h1 id="h-h1">Fill Your<br><span class="silver">Schedule.</span><br>Risk-Free.</h1>
+          <p class="lead" id="h-lead">We run Facebook and Instagram ads built specifically for landscaping businesses. You only pay our fee once we deliver real leads — or the first month is on us.</p>
+          <div class="hero-actions" id="h-act">
+            <button class="btn-white" onclick="document.getElementById('book').scrollIntoView({behavior:'smooth'})">Get My Free First Month</button>
+            <a href="#how" class="btn-ghost">How It Works</a>
+          </div>
+        </div>
+
+        <div class="hero-phone-wrap" id="h-phone">
+          <div class="mock-ad">
+            <div class="mock-ad-header">
+              <div class="ad-avatar">🌿</div>
+              <div>
+                <div class="ad-page-name">Green Edge Landscaping</div>
+                <div class="ad-tag">Sponsored · <span style="color:var(--fb-blue)">Facebook</span></div>
+              </div>
+            </div>
+            <div class="ad-img">
+              <div class="ad-img-bg"></div>
+              <div class="ad-img-text">Free Lawn Quote<br>This Week Only</div>
+              <div class="ad-img-sub">Serving [Your City] & Surrounding Areas</div>
+            </div>
+            <div class="ad-body">
+              <div class="ad-headline">🌱 Want a Lawn Your Neighbors Envy?</div>
+              <div class="ad-copy">We're booking new clients this month. Free quote — no pressure. Spots are limited.</div>
+              <button class="ad-cta-btn">Get Free Quote →</button>
+            </div>
+            <div class="ad-reactions">
+              <span>👍 ❤️ &nbsp;247 people</span>
+              <span>38 Comments · 14 Shares</span>
+            </div>
+          </div>
+          <div class="notif-badge b1">📞 New lead — Mike T.</div>
+          <div class="notif-badge b2">👍 +847 reactions</div>
+          <div class="notif-badge b3">💰 12 leads this week</div>
+        </div>
+      </div>
+
+      <div class="stats-strip reveal" id="h-stats">
+        <div class="stat-item">
+          <span class="stat-num" data-count="847">0</span>
+          <div class="stat-label">Leads delivered<br>for our clients</div>
+        </div>
+        <div class="stat-item">
+          <span class="stat-num">$0</span>
+          <div class="stat-label">You pay if we don't<br>deliver in month one</div>
+        </div>
+        <div class="stat-item">
+          <span class="stat-num">$500</span>
+          <div class="stat-label">Minimum ad budget<br>to start seeing leads</div>
+        </div>
+        <div class="stat-item">
+          <span class="stat-num">30<span style="font-size:1.5rem">days</span></span>
+          <div class="stat-label">Free trial window —<br>leads or you owe nothing</div>
+        </div>
+      </div>
+    </div>
+    <div class="scroll-hint" aria-hidden="true">
+      <span>Scroll</span>
+      <div class="scroll-line"></div>
+    </div>
+  </section>
+
+  <!-- ── HOW IT WORKS ── -->
+  <section id="how">
+    <div class="container">
+      <div style="text-align:center; max-width:600px; margin:0 auto;" class="reveal">
+        <span class="eyebrow">How It Works</span>
+        <h2>Simple. Transparent.<br><span class="silver">No Surprises.</span></h2>
+        <p style="color:var(--dim); font-size:1rem; line-height:1.8;">Three steps. No jargon. You keep full control of your money — I only earn my fee when the leads arrive.</p>
+      </div>
+      <div class="how-grid">
+        <div class="how-card reveal">
+          <span class="how-num">01</span>
+          <div class="how-icon">💳</div>
+          <h3>You Fund the Ad Budget</h3>
+          <p>The money Facebook uses to show your ads goes directly on your card — I never touch it. Most landscapers start at $500–$600/month. You control it and can pause anytime.</p>
+          <div class="how-card-line"></div>
+        </div>
+        <div class="how-card reveal">
+          <span class="how-num">02</span>
+          <div class="how-icon">🎯</div>
+          <h3>I Build & Run Your Ads</h3>
+          <p>I set everything up, write the copy, design the creatives, and run targeted campaigns to bring you phone calls and booked estimates. Monthly report showing every lead.</p>
+          <div class="how-card-line"></div>
+        </div>
+        <div class="how-card reveal">
+          <span class="how-num">03</span>
+          <div class="how-icon">✅</div>
+          <h3>You Pay Only When It Works</h3>
+          <p>Miss your lead goal in the first 30 days? My fee is $0. After that, a flat monthly rate — no surprises, no long contracts. Cancel with 2 weeks' notice.</p>
+          <div class="how-card-line"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── AD EXAMPLE ── -->
+  <section id="ad-example">
+    <div class="container">
+      <div class="ad-example-layout">
+        <div class="reveal">
+          <span class="eyebrow">Real Results</span>
+          <h2>This is what a<br><span class="silver">converting ad</span><br>looks like.</h2>
+          <p style="color:var(--dim); font-size:1rem; line-height:1.8; margin-bottom:32px;">We don't run generic boost posts. Every ad uses proven copywriting, precise audience targeting, and a clear call to action built to generate calls — not just impressions.</p>
+          <div class="result-pills">
+            <div class="result-pill reveal">
+              <span class="pill-icon">📊</span>
+              <div><div class="pill-label">Average cost per lead</div></div>
+              <span class="pill-val">$8 – $22</span>
+            </div>
+            <div class="result-pill reveal">
+              <span class="pill-icon">👥</span>
+              <div><div class="pill-label">Audience reach per campaign</div></div>
+              <span class="pill-val">15,000+</span>
+            </div>
+            <div class="result-pill reveal">
+              <span class="pill-icon">📞</span>
+              <div><div class="pill-label">Average leads in first 30 days</div></div>
+              <span class="pill-val">18 – 40</span>
+            </div>
+            <div class="result-pill reveal">
+              <span class="pill-icon">⭐</span>
+              <div><div class="pill-label">Close rate for landscapers on leads</div></div>
+              <span class="pill-val">~30%</span>
+            </div>
+          </div>
+        </div>
+        <div class="reveal">
+          <div class="mock-ad" style="max-width:100%; border-color:rgba(255,255,255,0.18);">
+            <div class="mock-ad-header">
+              <div class="ad-avatar" style="font-size:20px;">🌿</div>
+              <div style="flex:1">
+                <div class="ad-page-name">Green Edge Landscaping</div>
+                <div class="ad-tag">Sponsored · <span style="color:var(--fb-blue)">Facebook</span></div>
+              </div>
+              <span style="color:var(--dimmer); font-size:18px;">···</span>
+            </div>
+            <div style="padding:12px 16px 4px; font-size:14px; line-height:1.6; color:rgba(255,255,255,0.85);">
+              🌱 <strong>Tired of your lawn looking rough?</strong><br>
+              We're booking new clients this month — first quote is completely free.<br><br>
+              ✅ Mowing · Edging · Fertilizing · Seasonal Cleanup<br>
+              📍 Serving [Your City] and all surrounding areas<br>
+              📞 Call us or click below — we respond same day.
+            </div>
+            <div class="ad-img" style="height:220px;">
+              <div class="ad-img-bg"></div>
+              <div class="ad-img-text" style="font-size:26px;">Your Dream Lawn<br>Starts Here</div>
+              <div class="ad-img-sub" style="font-size:13px;">Free Quote · No Obligation · Same-Day Response</div>
+            </div>
+            <div class="ad-body">
+              <div class="ad-headline" style="font-size:15px;">Green Edge Landscaping — Free Lawn Quote</div>
+              <div class="ad-copy">One of [City]'s top-rated lawn care teams. Spots are limited this season.</div>
+              <button class="ad-cta-btn" style="font-size:14px; padding:13px;">📞 Get My Free Quote Today</button>
+            </div>
+            <div class="ad-reactions" style="padding:12px 16px;">
+              <span>👍 ❤️ 😮 &nbsp;1.2K</span>
+              <span>143 Comments · 89 Shares</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── IS IT WORTH IT ── -->
+  <section id="worth-it">
+    <div class="container">
+      <div style="text-align:center; max-width:640px; margin:0 auto 64px;" class="reveal">
+        <span class="eyebrow">The Math</span>
+        <h2>Is the ad money<br><span class="silver">worth it?</span></h2>
+        <p style="color:var(--dim); font-size:1rem; line-height:1.8;">Short answer: you only need <strong style="color:var(--white);">ONE job</strong> to win big.</p>
+      </div>
+
+      <div style="display:grid; grid-template-columns:1fr auto 1fr; align-items:center; gap:24px; max-width:800px; margin:0 auto 64px;" class="reveal">
+        <div style="padding:36px 32px; background:rgba(255,255,255,0.03); border:1px solid var(--border); border-radius:16px; text-align:center;">
+          <div style="font-size:11px; font-weight:700; letter-spacing:0.16em; text-transform:uppercase; color:var(--silver); margin-bottom:12px;">You spend on ads</div>
+          <div style="font-family:'Space Grotesk',sans-serif; font-size:3.6rem; font-weight:800; line-height:1;">$800</div>
+          <div style="font-size:13px; color:var(--dim); margin-top:8px;">one month</div>
+        </div>
+        <div style="font-family:'Space Grotesk',sans-serif; font-size:2rem; color:var(--silver); font-weight:300;">→</div>
+        <div style="padding:36px 32px; background:rgba(255,255,255,0.05); border:1px solid var(--border-bright); border-radius:16px; text-align:center;">
+          <div style="font-size:11px; font-weight:700; letter-spacing:0.16em; text-transform:uppercase; color:var(--silver); margin-bottom:12px;">One patio job brings in</div>
+          <div style="font-family:'Space Grotesk',sans-serif; font-size:3.6rem; font-weight:800; line-height:1;">$15,000</div>
+          <div style="font-size:13px; color:var(--dim); margin-top:8px;">You turned $800 into $15,000</div>
+        </div>
+      </div>
+
+      <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:2px;">
+        <div style="padding:44px 36px; background:#0d0d0d; border-top:1px solid var(--border);" class="reveal">
+          <div style="font-size:32px; margin-bottom:20px;">💼</div>
+          <h3>One job pays for the whole year</h3>
+          <p style="font-size:14px; color:var(--dim); line-height:1.75;">A patio, wall, or driveway is worth $5,000–$30,000+. Get just one job and you're ahead. Every job after that is pure profit.</p>
+        </div>
+        <div style="padding:44px 36px; background:#0d0d0d; border-top:1px solid var(--border); border-left:1px solid var(--border); border-right:1px solid var(--border);" class="reveal">
+          <div style="font-size:32px; margin-bottom:20px;">☕</div>
+          <h3>It's just $26 a day</h3>
+          <p style="font-size:14px; color:var(--dim); line-height:1.75;">$800/month is $26 a day — less than lunch and gas. For that, your ad shows to homeowners in your town every single day.</p>
+        </div>
+        <div style="padding:44px 36px; background:#0d0d0d; border-top:1px solid var(--border);" class="reveal">
+          <div style="font-size:32px; margin-bottom:20px;">📊</div>
+          <h3>You can SEE what it does</h3>
+          <p style="font-size:14px; color:var(--dim); line-height:1.75;">Truck stickers and yard signs cost money too — but you never know if they worked. With ads, you see every call and what it cost.</p>
+        </div>
+      </div>
+
+      <div style="margin-top:2px; padding:40px 36px; background:#0d0d0d; border-top:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:24px;" class="reveal">
+        <div>
+          <div style="font-family:'Space Grotesk',sans-serif; font-size:1rem; font-weight:700; margin-bottom:6px;">Start small. Spend $500–$600 to prove it works.</div>
+          <div style="font-size:14px; color:var(--dim);">When you see leads coming in cheap, we turn it up.</div>
+        </div>
+        <button class="btn-white" onclick="document.getElementById('book').scrollIntoView({behavior:'smooth'})">See If Your Area Is Available →</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── PROMISE ── -->
+  <section id="promise" style="background:#0a0a0a;">
+    <div class="container">
+      <div class="promise-box reveal">
+        <span class="eyebrow" style="color:var(--silver);">The No-Risk Promise</span>
+        <h2>You Don't Pay Until<br><span class="silver">It Works.</span></h2>
+        <p class="lead" style="text-align:center; margin:0 auto 48px; max-width:560px;">The only money you spend upfront is your ad budget — and that's the money that gets you leads. My fee? Only after I prove it.</p>
+        <div class="promise-cols">
+          <div class="promise-col">
+            <h4>What You Pay Facebook</h4>
+            <div class="amount">Ad Budget</div>
+            <p>Goes directly to Facebook on your card. I never see this money. Start at $500–$600/month and scale when you're ready.</p>
+          </div>
+          <div class="promise-col">
+            <h4>What You Pay Me</h4>
+            <div class="amount">Monthly Fee</div>
+            <p>Flat monthly rate for building and managing everything. First month is free if I don't hit your lead goal. No contracts. Cancel with 2 weeks' notice.</p>
+          </div>
+        </div>
+        <button class="btn-white" style="font-size:16px; padding:18px 44px;" onclick="document.getElementById('book').scrollIntoView({behavior:'smooth'})">Get My Free First Month →</button>
+        <p style="font-size:12px; color:var(--dimmer); margin-top:16px;">Only taking a few landscapers per area — spots are limited.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── FAQ ── -->
+  <section id="faq">
+    <div class="container" style="max-width:760px;">
+      <span class="eyebrow reveal">Common Questions</span>
+      <h2 class="reveal">Got questions?<br><span class="silver">We've got answers.</span></h2>
+      <div class="faq-list">
+        <div class="faq-item">
+          <button class="faq-q">Is the ad budget included in your fee? <span class="faq-icon">+</span></button>
+          <div class="faq-a">No. The ad budget goes straight to Facebook on your card. My fee is only for building, managing, and optimising your ads. You always know exactly where your money is going.</div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-q">Do I have to sign a long contract? <span class="faq-icon">+</span></button>
+          <div class="faq-a">No. Cancel anytime with two weeks' notice. Most clients stay because they're getting leads — not because they have to.</div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-q">What if I don't get any leads in the first month? <span class="faq-icon">+</span></button>
+          <div class="faq-a">Then you pay $0 for my work that month. The ad budget you spend with Facebook is the only cost you carry upfront.</div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-q">Can I start with a small ad budget? <span class="faq-icon">+</span></button>
+          <div class="faq-a">Yes. Many landscapers start at $500–$600/month. Once leads come in, most scale to $1,000–$1,500/month. You control it — pause or adjust anytime.</div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-q">Do you only do ads, or do you make websites too? <span class="faq-icon">+</span></button>
+          <div class="faq-a">Both. We run Facebook and Instagram ad campaigns and build high-converting landing pages and full websites for landscaping businesses.</div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-q">How quickly will I start seeing leads? <span class="faq-icon">+</span></button>
+          <div class="faq-a">Most clients see their first leads within 1–2 weeks. Facebook's algorithm needs a few days to optimise, but by week two you'll typically have calls coming in.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── BOOK ── -->
+  <section id="book">
+    <div class="container">
+      <div class="book-wrap">
+        <div>
+          <span class="eyebrow reveal">Book a Free Call</span>
+          <h2 class="reveal">Let's talk about<br><span class="silver">your schedule.</span></h2>
+          <p class="lead reveal" style="margin-bottom:48px;">15 minutes. No hard sell. We'll look at your area, your goals, and whether we're a good fit — if we are, your first month is free.</p>
+          <div class="book-promise">
+            <div class="bp-item reveal">
+              <div class="bp-icon">🎯</div>
+              <div>
+                <div class="bp-title">We only take a few per area</div>
+                <div class="bp-desc">We don't work with your competitors in the same city. Once a market is taken, it's taken.</div>
+              </div>
+            </div>
+            <div class="bp-item reveal">
+              <div class="bp-icon">💰</div>
+              <div>
+                <div class="bp-title">First month free if we miss</div>
+                <div class="bp-desc">Hit your lead goal or you pay $0 for my work that month. No fine print.</div>
+              </div>
+            </div>
+            <div class="bp-item reveal">
+              <div class="bp-icon">📞</div>
+              <div>
+                <div class="bp-title">Real leads, not impressions</div>
+                <div class="bp-desc">Phone calls, form fills, and booked estimates — not vanity metrics.</div>
+              </div>
+            </div>
+            <div class="bp-item reveal">
+              <div class="bp-icon">🌿</div>
+              <div>
+                <div class="bp-title">Built for landscapers only</div>
+                <div class="bp-desc">Every ad template and audience we use is designed specifically for lawn care and landscaping.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Form -->
+        <div class="book-form reveal">
+          <div class="form-title">Book Your Free Strategy Call</div>
+          <div class="form-sub">We'll respond within 24 hours to confirm your spot.</div>
+          <form id="bookForm" novalidate>
+            <div class="form-row">
+              <label for="fname">Full Name</label>
+              <input type="text" id="fname" name="name" placeholder="John Smith" autocomplete="name" required>
+            </div>
+            <div class="form-row">
+              <label for="fbiz">Business Name</label>
+              <input type="text" id="fbiz" name="business" placeholder="Smith Landscaping LLC" autocomplete="organization">
+            </div>
+            <div class="form-row">
+              <label for="femail">Email Address</label>
+              <input type="text" inputmode="email" id="femail" name="email" placeholder="john@smithlawn.com" autocomplete="email" required>
+            </div>
+            <div class="form-row">
+              <label for="fphone">Phone Number</label>
+              <input type="tel" id="fphone" name="phone" placeholder="(555) 000-0000" autocomplete="tel">
+            </div>
+            <div class="form-row">
+              <label for="fcity">What city do you serve?</label>
+              <input type="text" id="fcity" name="city" placeholder="e.g. Austin, TX" autocomplete="address-level2">
+            </div>
+            <div class="form-row">
+              <label for="fbudget">Monthly ad budget you're open to</label>
+              <select id="fbudget" name="budget">
+                <option value="">Select a range...</option>
+                <option>$500 – $700 / month</option>
+                <option>$700 – $1,000 / month</option>
+                <option>$1,000 – $2,000 / month</option>
+                <option>$2,000+ / month</option>
+                <option>Not sure yet</option>
+              </select>
+            </div>
+            <div class="form-row">
+              <label for="fmsg">Anything else? (optional)</label>
+              <textarea id="fmsg" name="message" placeholder="Tell us about your business or any questions you have..."></textarea>
+            </div>
+            <button type="submit" class="form-submit" id="submit-btn">Book My Free Strategy Call →</button>
+            <div class="form-note">No spam. No pressure. Just a 15-minute conversation.</div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <svg width="28" height="28" viewBox="0 0 100 100" fill="none">
+        <defs>
+          <linearGradient id="flg" x1="50" y1="10" x2="50" y2="90" gradientUnits="userSpaceOnUse">
+            <stop offset="0%" stop-color="#ffffff"/>
+            <stop offset="100%" stop-color="#666"/>
+          </linearGradient>
+        </defs>
+        <polygon points="50,12 20,85 30,85 50,38 70,85 80,85" fill="url(#flg)"/>
+        <path d="M28,62 Q50,52 80,56 L82,62 Q58,58 30,68 Z" fill="#888"/>
+      </svg>
+      <div>
+        <div style="font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:16px;">AdVanta Marketing</div>
+        <div class="footer-tagline">Advance. Enhance. Elevate.</div>
+      </div>
+    </div>
+    <div class="footer-copy">© 2026 AdVanta Marketing. Facebook & Instagram Ads for Landscapers.</div>
+  </div>
+</footer>
+
+<script>
+gsap.registerPlugin(ScrollTrigger);
+
+// ── Scroll progress bar ──
+window.addEventListener('scroll', () => {
+  const p = window.scrollY / (document.body.scrollHeight - window.innerHeight);
+  const pb = document.getElementById('pbar');
+  pb.style.width = (p * 100) + '%';
+  pb.setAttribute('aria-valuenow', Math.round(p * 100));
+});
+
+// ── 6 HUD dots mapped across 6 sections ──
+const hudSections = ['#hero', '#how', '#ad-example', '#worth-it', '#faq', '#book'];
+const hudEls = document.querySelectorAll('.hdot');
+
+hudSections.forEach((id, i) => {
+  const el = document.querySelector(id);
+  if (!el) return;
+  // Click to jump
+  hudEls[i].addEventListener('click', () => el.scrollIntoView({ behavior: 'smooth' }));
+  // Activate on enter
+  ScrollTrigger.create({
+    trigger: el,
+    start: 'top 60%',
+    end: 'bottom 60%',
+    onEnter: () => setHud(i),
+    onEnterBack: () => setHud(i),
+  });
+});
+
+function setHud(i) {
+  hudEls.forEach((d, j) => d.classList.toggle('on', j === i));
+}
+
+// ── Scroll reveal ──
+const revealEls = document.querySelectorAll('.reveal');
+const io = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
+}, { threshold: 0.12 });
+revealEls.forEach(el => io.observe(el));
+
+// ── Hero entrance ──
+gsap.set(['#h-ey','#h-h1','#h-lead','#h-act','#h-phone'], { opacity: 0, y: 28 });
+const tl = gsap.timeline({ delay: 0.3 });
+tl.to('#h-ey',    { opacity:1, y:0, duration:0.8, ease:'power2.out' })
+  .to('#h-h1',    { opacity:1, y:0, duration:0.9, ease:'power2.out' }, 0.18)
+  .to('#h-lead',  { opacity:1, y:0, duration:0.8, ease:'power2.out' }, 0.35)
+  .to('#h-act',   { opacity:1, y:0, duration:0.7, ease:'power2.out' }, 0.5)
+  .to('#h-phone', { opacity:1, y:0, duration:0.9, ease:'power2.out' }, 0.28);
+
+// ── Lead counter ──
+ScrollTrigger.create({
+  trigger: '#h-stats', start: 'top 85%', once: true,
+  onEnter: () => {
+    const el = document.querySelector('[data-count="847"]');
+    if (!el) return;
+    gsap.fromTo({ n: 0 }, { n: 847, duration: 1.8, ease: 'power2.out',
+      onUpdate: function() { el.textContent = Math.round(this.targets()[0].n).toLocaleString(); }
+    });
+  }
+});
+
+// ── FAQ accordion ──
+document.querySelectorAll('.faq-q').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const item = btn.parentElement;
+    const isOpen = item.classList.contains('open');
+    document.querySelectorAll('.faq-item').forEach(i => i.classList.remove('open'));
+    if (!isOpen) item.classList.add('open');
+  });
+});
+
+// ── Form submit ──
+document.getElementById('bookForm').addEventListener('submit', function(e) {
+  e.preventDefault();
+  const btn = document.getElementById('submit-btn');
+  btn.textContent = '✅ Request Sent! We\'ll be in touch within 24 hours.';
+  btn.style.background = '#1a1a1a';
+  btn.style.color = '#fff';
+  btn.style.border = '1px solid rgba(255,255,255,0.2)';
+  btn.disabled = true;
+});
+</script>
+</body>
+</html>
