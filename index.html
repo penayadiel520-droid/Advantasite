@@ -179,6 +179,13 @@
     .scroll-line { width: 1px; height: 44px; background: linear-gradient(180deg, rgba(255,255,255,0.5), transparent); animation: sp 2.4s infinite; }
     @keyframes sp { 0%,100%{opacity:1}50%{opacity:0.3} }
 
+    @media (max-width: 900px) {
+      .scroll-hint {
+        position: relative; bottom: auto; left: auto; transform: none;
+        margin: 32px auto 0; width: fit-content;
+      }
+    }
+
     /* ── Stats strip ── */
     .stats-strip {
       display: grid; grid-template-columns: repeat(4, 1fr); margin-top: 80px;
@@ -545,10 +552,10 @@
           <div class="stat-label">Free trial window —<br>leads or you owe nothing</div>
         </div>
       </div>
-    </div>
-    <div class="scroll-hint" aria-hidden="true">
-      <span>Scroll</span>
-      <div class="scroll-line"></div>
+      <div class="scroll-hint" aria-hidden="true">
+        <span>Scroll</span>
+        <div class="scroll-line"></div>
+      </div>
     </div>
   </section>
 
