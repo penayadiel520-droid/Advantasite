@@ -916,7 +916,24 @@ document.querySelectorAll('.faq-q').forEach(btn => {
 
 // ── Form validation & submit ──
 const bookForm = document.getElementById('bookForm');
-const requiredFields = ['fname', 'fbiz', 'femail', 'fphone', 'fcity', 'fbudget', 'fmsg'];
+
+// Fields that are required (fmsg is optional)
+const requiredFields = ['fname', 'fbiz', 'femail', 'fphone', 'fcity', 'fbudget'];
+
+const validators = {
+  femail: {
+    test: v => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v),
+    msg: 'Please enter a valid email address'
+  },
+  fphone: {
+    test: v => /^[\+]?[\d\s\-\(\)]{7,15}$/.test(v.replace(/\s/g, '')),
+    msg: 'Please enter a valid phone number'
+  },
+  fcity: {
+    test: v => /^[a-zA-ZÀ-ɏ\s\-\.,]{2,}$/.test(v.trim()),
+    msg: 'Please enter a valid city'
+  }
+};
 
 function clearError(el) {
   el.classList.remove('field-error');
@@ -924,17 +941,20 @@ function clearError(el) {
   if (msg) msg.remove();
 }
 
-function showError(el) {
+function showError(el, message) {
   el.classList.add('field-error');
-  if (!el.parentElement.querySelector('.field-error-msg')) {
+  const existing = el.parentElement.querySelector('.field-error-msg');
+  if (existing) {
+    existing.textContent = message;
+  } else {
     const msg = document.createElement('span');
     msg.className = 'field-error-msg';
-    msg.textContent = 'This is a required question';
+    msg.textContent = message;
     el.parentElement.appendChild(msg);
   }
 }
 
-// Clear error on input/change
+// Clear error live as user types/selects
 requiredFields.forEach(id => {
   const el = document.getElementById(id);
   if (!el) return;
@@ -949,9 +969,14 @@ bookForm.addEventListener('submit', function(e) {
   requiredFields.forEach(id => {
     const el = document.getElementById(id);
     if (!el) return;
-    const empty = el.tagName === 'SELECT' ? !el.value : !el.value.trim();
+    const val = el.tagName === 'SELECT' ? el.value : el.value.trim();
+    const empty = !val;
+
     if (empty) {
-      showError(el);
+      showError(el, 'This is a required question');
+      hasError = true;
+    } else if (validators[id] && !validators[id].test(val)) {
+      showError(el, validators[id].msg);
       hasError = true;
     } else {
       clearError(el);
@@ -959,7 +984,6 @@ bookForm.addEventListener('submit', function(e) {
   });
 
   if (hasError) {
-    // Scroll to first error
     const first = bookForm.querySelector('.field-error');
     if (first) first.scrollIntoView({ behavior: 'smooth', block: 'center' });
     return;
